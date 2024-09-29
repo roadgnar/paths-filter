@@ -19,7 +19,7 @@ import {csvEscape} from './list-format/csv-escape'
 
 type ExportFormat = 'none' | 'csv' | 'json' | 'shell' | 'escape'
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
   try {
     const workingDirectory = core.getInput('working-directory', {required: false})
     if (workingDirectory) {
@@ -58,11 +58,11 @@ async function run(): Promise<void> {
   }
 }
 
-function isPathInput(text: string): boolean {
+export function isPathInput(text: string): boolean {
   return !(text.includes('\n') || text.includes(':'))
 }
 
-function getConfigFileContent(configPath: string): string {
+export function getConfigFileContent(configPath: string): string {
   if (!fs.existsSync(configPath)) {
     throw new Error(`Configuration file '${configPath}' not found`)
   }
@@ -74,7 +74,7 @@ function getConfigFileContent(configPath: string): string {
   return fs.readFileSync(configPath, {encoding: 'utf8'})
 }
 
-async function getChangedFiles(token: string, base: string, ref: string, initialFetchDepth: number): Promise<File[]> {
+export async function getChangedFiles(token: string, base: string, ref: string, initialFetchDepth: number): Promise<File[]> {
   // if base is 'HEAD' only local uncommitted changes will be detected
   // This is the simplest case as we don't need to fetch more commits or evaluate current/before refs
   if (base === git.HEAD) {
@@ -112,7 +112,7 @@ async function getChangedFiles(token: string, base: string, ref: string, initial
   }
 }
 
-async function getChangedFilesFromGit(base: string, head: string, initialFetchDepth: number): Promise<File[]> {
+export async function getChangedFilesFromGit(base: string, head: string, initialFetchDepth: number): Promise<File[]> {
   const defaultBranch = github.context.payload.repository?.default_branch
 
   const beforeSha = github.context.eventName === 'push' ? (github.context.payload as PushEvent).before : null
@@ -175,7 +175,7 @@ async function getChangedFilesFromGit(base: string, head: string, initialFetchDe
 }
 
 // Uses github REST api to get list of files changed in PR
-async function getChangedFilesFromApi(token: string, pullRequest: PullRequestEvent): Promise<File[]> {
+export async function getChangedFilesFromApi(token: string, pullRequest: PullRequestEvent): Promise<File[]> {
   core.startGroup(`Fetching list of changed files for PR#${pullRequest.number} from Github API`)
   try {
     const client = github.getOctokit(token)
@@ -228,7 +228,7 @@ async function getChangedFilesFromApi(token: string, pullRequest: PullRequestEve
   }
 }
 
-function exportResults(results: FilterResults, format: ExportFormat): void {
+export function exportResults(results: FilterResults, format: ExportFormat): void {
   core.info('Results:')
   const changes = []
   for (const [key, files] of Object.entries(results)) {
@@ -262,7 +262,7 @@ function exportResults(results: FilterResults, format: ExportFormat): void {
   }
 }
 
-function serializeExport(files: File[], format: ExportFormat): string {
+export function serializeExport(files: File[], format: ExportFormat): string {
   const fileNames = files.map(file => file.filename)
   switch (format) {
     case 'csv':
@@ -278,13 +278,12 @@ function serializeExport(files: File[], format: ExportFormat): string {
   }
 }
 
-function isExportFormat(value: string): value is ExportFormat {
+export function isExportFormat(value: string): value is ExportFormat {
   return ['none', 'csv', 'shell', 'json', 'escape'].includes(value)
 }
 
-function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message
   return String(error)
 }
 
-run()
